@@ -1,0 +1,199 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"argoproj.io/v1alpha1","kind":"Application","metadata":{"annotations":{},"finalizers":["resources-finalizer.argocd.argoproj.io"],"name":"backend-api","namespace":"argocd"},"spec":{"destination":{"namespace":"app","server":"https://kubernetes.default.svc"},"project":"default","source":{"path":"apps/backend-api","repoURL":"git@github.com:Cozm1n1412/k3s-gitops-infra.git","targetRevision":"main"},"syncPolicy":{"automated":{"prune":true,"selfHeal":true},"syncOptions":["CreateNamespace=true"]}}}
+  creationTimestamp: "2026-08-29T12:44:33Z"
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  generation: 28
+  name: backend-api
+  namespace: argocd
+  resourceVersion: "6324"
+  uid: e8701e2f-e5fc-4fae-96b0-2ab9d0ef12b2
+spec:
+  destination:
+    namespace: app
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: apps/backend-api
+    repoURL: git@github.com:Cozm1n1412/k3s-gitops-infra.git
+    targetRevision: main
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+status:
+  controllerNamespace: argocd
+  health:
+    lastTransitionTime: "2026-08-29T12:59:36Z"
+    status: Healthy
+  history:
+  - deployStartedAt: "2026-08-29T12:44:41Z"
+    deployedAt: "2026-08-29T12:44:43Z"
+    id: 0
+    initiatedBy:
+      automated: true
+    revision: cd08de970e1d08053bb1226135a2997d40f81668
+    source:
+      path: apps/backend-api
+      repoURL: git@github.com:Cozm1n1412/k3s-gitops-infra.git
+      targetRevision: main
+  - deployStartedAt: "2026-08-29T12:45:21Z"
+    deployedAt: "2026-08-29T12:45:24Z"
+    id: 1
+    initiatedBy: {}
+    revision: cd08de970e1d08053bb1226135a2997d40f81668
+    source:
+      path: apps/backend-api
+      repoURL: git@github.com:Cozm1n1412/k3s-gitops-infra.git
+      targetRevision: main
+  - deployStartedAt: "2026-08-29T12:59:31Z"
+    deployedAt: "2026-08-29T12:59:34Z"
+    id: 2
+    initiatedBy:
+      automated: true
+    revision: 8fdba8ef1694d47b7aa947f858edc292cbcb092e
+    source:
+      path: apps/backend-api
+      repoURL: git@github.com:Cozm1n1412/k3s-gitops-infra.git
+      targetRevision: main
+  operationState:
+    finishedAt: "2026-08-29T12:59:34Z"
+    message: successfully synced (all tasks run)
+    operation:
+      initiatedBy:
+        automated: true
+      retry:
+        limit: 5
+      sync:
+        prune: true
+        revision: 8fdba8ef1694d47b7aa947f858edc292cbcb092e
+        source:
+          path: apps/backend-api
+          repoURL: git@github.com:Cozm1n1412/k3s-gitops-infra.git
+          targetRevision: main
+        syncOptions:
+        - CreateNamespace=true
+    phase: Succeeded
+    startedAt: "2026-08-29T12:59:31Z"
+    syncResult:
+      resources:
+      - group: ""
+        hookPhase: Running
+        kind: Namespace
+        message: namespace/app unchanged
+        name: app
+        namespace: app
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Running
+        kind: ConfigMap
+        message: configmap/api-source unchanged
+        name: api-source
+        namespace: app
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Running
+        kind: Service
+        message: service/backend-api-svc unchanged
+        name: backend-api-svc
+        namespace: app
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: apps
+        hookPhase: Running
+        images:
+        - python:3.11-slim
+        kind: Deployment
+        message: deployment.apps/backend-api configured
+        name: backend-api
+        namespace: app
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: networking.k8s.io
+        hookPhase: Running
+        kind: Ingress
+        message: ingress.networking.k8s.io/backend-api-ingress unchanged
+        name: backend-api-ingress
+        namespace: app
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: monitoring.coreos.com
+        hookPhase: Running
+        kind: ServiceMonitor
+        message: servicemonitor.monitoring.coreos.com/backend-api-monitor unchanged
+        name: backend-api-monitor
+        namespace: app
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      revision: 8fdba8ef1694d47b7aa947f858edc292cbcb092e
+      source:
+        path: apps/backend-api
+        repoURL: git@github.com:Cozm1n1412/k3s-gitops-infra.git
+        targetRevision: main
+  reconciledAt: "2026-08-29T12:59:34Z"
+  resourceHealthSource: appTree
+  resources:
+  - kind: ConfigMap
+    name: api-source
+    namespace: app
+    status: Synced
+    version: v1
+  - kind: Namespace
+    name: app
+    status: Synced
+    version: v1
+  - kind: Service
+    name: backend-api-svc
+    namespace: app
+    status: Synced
+    version: v1
+  - group: apps
+    kind: Deployment
+    name: backend-api
+    namespace: app
+    status: Synced
+    version: v1
+  - group: monitoring.coreos.com
+    kind: ServiceMonitor
+    name: backend-api-monitor
+    namespace: app
+    status: Synced
+    version: v1
+  - group: networking.k8s.io
+    kind: Ingress
+    name: backend-api-ingress
+    namespace: app
+    status: Synced
+    version: v1
+  sourceHydrator: {}
+  sourceType: Directory
+  summary:
+    externalURLs:
+    - https://api.92.5.67.155.nip.io/
+    images:
+    - python:3.11-slim
+  sync:
+    comparedTo:
+      destination:
+        namespace: app
+        server: https://kubernetes.default.svc
+      source:
+        path: apps/backend-api
+        repoURL: git@github.com:Cozm1n1412/k3s-gitops-infra.git
+        targetRevision: main
+    revision: 8fdba8ef1694d47b7aa947f858edc292cbcb092e
+    status: Synced
