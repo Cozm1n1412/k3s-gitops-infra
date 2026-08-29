@@ -77,3 +77,14 @@ Workload stress testing executed via ApacheBench (1,000 requests, concurrency le
 - Throughput: 122.85 requests/second
 - Load Balancing: 100% traffic distributed equally across 2 active replicas via ClusterIP
 - HTTP Error Rate: 0.00% (Zero 5xx/4xx errors under concurrent load)
+
+---
+
+## Disaster Recovery & Automated Persistence Backups
+
+The database tier implements automated state backup via a declarative Kubernetes CronJob:
+
+- Schedule: Executed daily at 02:00 UTC (`0 2 * * *`)
+- Isolation: Decoupled client execution using `postgres:16-alpine` running isolated `pg_dump` streams
+- Fault Tolerance: Enforces strict POSIX failure handling (`set -eo pipefail`) to prevent masked compression failures
+- Storage: Compressed snapshots (`.sql.gz`) persisted directly to a dedicated `PersistentVolumeClaim` with deterministic 3-run history retention
