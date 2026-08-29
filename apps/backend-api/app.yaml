@@ -1,0 +1,155 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: app
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-source
+  namespace: app
+data:
+  main.py: |
+    from fastapi import FastAPI
+    import psycopg2
+    import redis
+    import os
+    from prometheus_client import Counter, make_asgi_app
+
+    app = FastAPI(title="Production K3s Microservice")
+    metrics_app = make_asgi_app()
+    app.mount("/metrics", metrics_app)
+
+    REQUESTS_TOTAL = Counter("http_requests_total", "Total HTTP Requests", ["endpoint", "status"])
+
+    PG_HOST = os.getenv("PG_HOST", "postgres-db.database.svc.cluster.local")
+    PG_DB = os.getenv("PG_DB", "appdb")
+    PG_USER = os.getenv("PG_USER", "dbuser")
+    PG_PASS = os.getenv("PG_PASS", "SuperSecurePass2026!")
+    REDIS_HOST = os.getenv("REDIS_HOST", "redis-core.telemetry.svc.cluster.local")
+
+    @app.get("/")
+    def health():
+        REQUESTS_TOTAL.labels(endpoint="/", status="200").inc()
+        return {"status": "healthy", "service": "core-api", "tls": True}
+
+    @app.get("/hits")
+    def hits():
+        try:
+            r = redis.Redis(host=REDIS_HOST, port=6379, socket_timeout=2)
+            val = r.incr("api_counter")
+            REQUESTS_TOTAL.labels(endpoint="/hits", status="200").inc()
+            return {"layer": "cache_redis", "counter": val}
+        except Exception as e:
+            REQUESTS_TOTAL.labels(endpoint="/hits", status="500").inc()
+            return {"error": str(e)}, 500
+
+    @app.get("/db-check")
+    def db_check():
+        try:
+            conn = psycopg2.connect(host=PG_HOST, dbname=PG_DB, user=PG_USER, password=PG_PASS, connect_timeout=3)
+            cur = conn.cursor()
+            cur.execute("SELECT count(*) FROM audit_log;")
+            count = cur.fetchone()[0]
+            cur.close()
+            conn.close()
+            REQUESTS_TOTAL.labels(endpoint="/db-check", status="200").inc()
+            return {"layer": "database_postgres", "audit_records": count}
+        except Exception as e:
+            REQUESTS_TOTAL.labels(endpoint="/db-check", status="500").inc()
+            return {"error": str(e)}, 500
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-api
+  namespace: app
+  labels:
+    app: backend-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend-api
+  template:
+    metadata:
+      labels:
+        app: backend-api
+    spec:
+      containers:
+      - name: api
+        image: python:3.11-slim
+        command:
+        - /bin/sh
+        - -c
+        - |
+          pip install --no-cache-dir fastapi uvicorn redis psycopg2-binary prometheus-client && \
+          python -m uvicorn main:app --host 0.0.0.0 --port 8000 --app-dir /app
+        ports:
+        - containerPort: 8000
+          name: http
+        volumeMounts:
+        - name: app-code
+          mountPath: /app
+      volumes:
+      - name: app-code
+        configMap:
+          name: api-source
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-api-svc
+  namespace: app
+  labels:
+    app: backend-api
+    release: monitoring
+spec:
+  ports:
+  - port: 80
+    targetPort: 8000
+    name: http
+  selector:
+    app: backend-api
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: backend-api-ingress
+  namespace: app
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+spec:
+  ingressClassName: traefik
+  tls:
+  - hosts:
+    - api.92.5.67.155.nip.io
+    secretName: api-tls-cert
+  rules:
+  - host: api.92.5.67.155.nip.io
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: backend-api-svc
+            port:
+              number: 80
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: backend-api-monitor
+  namespace: app
+  labels:
+    release: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: backend-api
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 15s
