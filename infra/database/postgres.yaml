@@ -6,7 +6,7 @@ metadata:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: postgres-secrets
+  name: postgres-credentials
   namespace: database
 type: Opaque
 stringData:
@@ -53,7 +53,7 @@ spec:
           name: postgres
         envFrom:
         - secretRef:
-            name: postgres-secrets
+            name: postgres-credentials
         volumeMounts:
         - name: pgdata
           mountPath: /var/lib/postgresql/data
