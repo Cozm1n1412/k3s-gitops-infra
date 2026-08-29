@@ -1,10 +1,10 @@
 # Production-Grade GitOps Infrastructure on k3s
 
-An automated, declarative Kubernetes infrastructure engineered from scratch on lightweight **k3s**, managed entirely via **ArgoCD (App-of-Apps pattern)** and secured with **SealedSecrets** and **Traefik automated TLS**.
+An automated, declarative Kubernetes infrastructure engineered from scratch on lightweight k3s, managed entirely via ArgoCD (App-of-Apps pattern) and secured with SealedSecrets and Traefik automated TLS.
 
 ---
 
-## 🏛 Architecture Overview
+## Architecture Overview
 
 The cluster follows a strict separation of concerns across dedicated namespaces:
 
@@ -27,28 +27,28 @@ k3s-gitops-infra/
 Core Engineering Pillars
 1. Declarative Control & Self-Healing (ArgoCD)
 
-    App-of-Apps Pattern: A single root-apps controller orchestrates the deployment and synchronization of microservices and infrastructure.
+   • App-of-Apps Pattern: A single root-apps controller orchestrates the deployment and synchronization of microservices and infrastructure.
 
-    Server-Side Apply (SSA): Field management is delegated to the Kubernetes API Server, preventing CRD update locks and resourceVersion: 0 conflicts.
+   • Server-Side Apply (SSA): Field management is delegated to the Kubernetes API Server, preventing CRD update locks and resourceVersion: 0 conflicts.
 
-    Continuous Reconciliation & Anti-Drift: Automatic pruning and self-healing enforce Git as the absolute single source of truth. Manual kubectl mutations are immediately overwritten.
+  • Continuous Reconciliation & Anti-Drift: Automatic pruning and self-healing enforce Git as the absolute single source of truth. Manual kubectl mutations are immediately overwritten.
 2. Zero-Trust Secrets Management (Bitnami SealedSecrets)
 
-    Asymmetric encryption at rest: Public key encrypts credentials inside Git commits; private key decrypts secrets in-memory inside the cluster.
+   • Asymmetric encryption at rest: Public key encrypts credentials inside Git commits; private key decrypts secrets in-memory inside the cluster.
 
-    Eliminates hardcoded environment variables and secrets leakage across the version control lifecycle.
+   • Eliminates hardcoded environment variables and secrets leakage across the version control lifecycle.
 3. Edge Routing & Ingress Automation
 
-    Integrated Traefik Ingress Controller terminating TLS.
+   • Integrated Traefik Ingress Controller terminating TLS.
 
-    Declarative routing directly to upstream backend endpoints with automated SSL lifecycle management.
+   • Declarative routing directly to upstream backend endpoints with automated SSL lifecycle management.
 4. Stateful Reliability & Observability Ready
 
-    Dedicated StatefulSet for PostgreSQL ensuring deterministic network identity and persistent volume binding via local storage provisioner.
+   • Dedicated StatefulSet for PostgreSQL ensuring deterministic network identity and persistent volume binding via local storage provisioner.
 
-    In-memory Redis caching tier decoupled from the application runtime.
+   • In-memory Redis caching tier decoupled from the application runtime.
 
-    Standardized labels across all workloads for integration with Prometheus Operator / Grafana dashboards.
+   • Standardized labels across all workloads for integration with Prometheus Operator / Grafana dashboards.
 Bootstrap & Disaster Recovery
 
 Rebuilding the entire cluster infrastructure from scratch requires only two commands:
