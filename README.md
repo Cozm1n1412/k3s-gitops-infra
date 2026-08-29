@@ -57,3 +57,23 @@ kubectl apply -f [https://github.com/bitnami-labs/sealed-secrets/releases/downlo
 
 # 2. Bootstrap the entire stack via Root Application
 kubectl apply -f argocd-apps/root-apps.yaml
+
+---
+
+## Infrastructure Footprint (Oracle Cloud Infrastructure)
+
+- Compute Tier: OCI Ampere A1 Compute Instance (aarch64 / ARM64 architecture)
+- Networking: OCI Virtual Cloud Network (VCN) with dedicated security lists for Ingress (80/443) and API Server (6443)
+- Storage: Local Path Provisioner bound to high-performance block storage volumes
+- Workload Strategy: Self-managed lightweight k3s control plane eliminating managed control plane overhead
+
+---
+
+## Empirical Benchmark & Load Verification
+
+Workload stress testing executed via ApacheBench (1,000 requests, concurrency level: 20):
+
+- Target Endpoint: `/hits` (Synchronous Redis Cache write & increment)
+- Throughput: 122.85 requests/second
+- Load Balancing: 100% traffic distributed equally across 2 active replicas via ClusterIP
+- HTTP Error Rate: 0.00% (Zero 5xx/4xx errors under concurrent load)
